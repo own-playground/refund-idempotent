@@ -9,8 +9,7 @@ public class JsonMapper {
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
-    private JsonMapper() {
-    }
+    private JsonMapper() {}
 
     static {
         objectMapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);

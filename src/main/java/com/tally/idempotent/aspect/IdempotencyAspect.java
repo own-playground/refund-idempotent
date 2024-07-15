@@ -27,7 +27,7 @@ public class IdempotencyAspect {
     private final IdempotencyProcessor idempotencyProcessor;
 
     @Around("@annotation(com.tally.idempotent.annotation.Idempotent)")
-    public Object idempotentOperation(final ProceedingJoinPoint joinPoint) {
+    public Object idempotentOperation(final ProceedingJoinPoint joinPoint) throws Throwable {
 
         final Idempotent annotation = getAnnotation(joinPoint);
         final String key = getIdempotentKey();
@@ -43,12 +43,8 @@ public class IdempotencyAspect {
             return JsonMapper.readFromJson(idempotencyKey.getResponseBody(), getReturnType(joinPoint));
         }
 
-        Object result = null;
-        try {
-            result = joinPoint.proceed();
-        } catch (Throwable e) {
-            throw new RuntimeException(e);
-        }
+        logger.info("Idempotency key is not found, refund process and save key = {}", key);
+        final Object result = joinPoint.proceed();
         idempotencyProcessor.save(key, JsonMapper.writeToJson(result), annotation.ttl());
 
         return result;
@@ -68,6 +64,5 @@ public class IdempotencyAspect {
         MethodSignature signature = (MethodSignature) joinPoint.getSignature();
         return signature.getReturnType();
     }
-
 
 }
