@@ -17,6 +17,35 @@
 
 ## Quickstart Guide
 
+### Sequence Diagram
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant RefundController
+    participant IdempotencyAspect
+    participant IdempotencyProcessor
+    participant RefundService
+
+    Client->>RefundController: POST /api/v1/refund (RefundRequest)
+    RefundController->>IdempotencyAspect: @Idempotent
+    IdempotencyAspect->>IdempotencyProcessor: read(key)
+    IdempotencyProcessor-->>IdempotencyAspect: IdempotencyKey or null
+
+    alt IdempotencyKey found
+        IdempotencyAspect->>IdempotencyProcessor: return cached response
+        IdempotencyAspect-->>Client: RefundResponse (cached)
+    else IdempotencyKey not found
+        IdempotencyAspect->>RefundService: proceed (RefundRequest)
+        RefundService->>RefundService: process refund logic
+        RefundService-->>IdempotencyAspect: RefundResponse
+        IdempotencyAspect->>IdempotencyProcessor: save(key, RefundResponse, ttl)
+        IdempotencyProcessor-->>IdempotencyAspect: key saved
+        IdempotencyAspect-->>Client: RefundResponse
+    end
+```
+
+
 ```shell
 curl -X POST http://localhost:8080/api/v1/refund \
      -H "Content-Type: application/json" \
