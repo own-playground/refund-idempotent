@@ -2,7 +2,6 @@ package com.tally.idempotent.domain.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import lombok.Builder;
 
@@ -12,16 +11,16 @@ import java.time.LocalDateTime;
 public class IdempotencyKey {
 
     @Id
-    @GeneratedValue(generator = "uuid2")
+    @Column(name = "`key`")
     private String key;
 
     @Column(columnDefinition = "TEXT")
     private String responseBody;
 
+    private LocalDateTime expiredAt;
+
     @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.now();
-
-    private LocalDateTime expiredAt;
 
     protected IdempotencyKey() {}
 
@@ -44,4 +43,9 @@ public class IdempotencyKey {
                 .expiredAt(expiredAt)
                 .build();
     }
+
+    public String getResponseBody() {
+        return responseBody;
+    }
+
 }

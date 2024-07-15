@@ -18,5 +18,5 @@ public @interface Idempotent {
      * Ttl for idempotent item in store in seconds
      */
 
-    long ttl() default 0;
+    long ttl() default 300;
 }

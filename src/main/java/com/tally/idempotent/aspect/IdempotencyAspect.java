@@ -9,6 +9,8 @@ import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
@@ -19,6 +21,8 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 public class IdempotencyAspect {
 
     private static final String IDEMPOTENT_KEY_HEADER = "X-Idempotency-Key";
+
+    private static final Logger logger = LoggerFactory.getLogger(IdempotencyAspect.class);
 
     private final IdempotencyProcessor idempotencyProcessor;
 
@@ -35,6 +39,7 @@ public class IdempotencyAspect {
         final IdempotencyKey idempotencyKey = idempotencyProcessor.read(key);
 
         if(idempotencyKey != null) {
+            logger.info("Idempotency key found, returning cached response. key = {}", key);
             return JsonMapper.readFromJson(idempotencyKey.getResponseBody(), getReturnType(joinPoint));
         }
 
